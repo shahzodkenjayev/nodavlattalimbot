@@ -1,7 +1,6 @@
 import os
 import google.generativeai as genai
 from telethon import TelegramClient, events
-import openai
 from dotenv import load_dotenv
 # --- O'ZINGIZNING MA'LUMOTLARINGIZNI KIRITING ---
 
