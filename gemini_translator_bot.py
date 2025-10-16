@@ -1,36 +1,31 @@
 import os
+import asyncio
 import google.generativeai as genai
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
-# --- O'ZINGIZNING MA'LUMOTLARINGIZNI KIRITING ---
 
-# 1. Telegram ma'lumotlari (avvalgi koddan)
-# --- ENV o'qish ---
+# --- Sozlamalar ---
 load_dotenv()
 
-# Telegram ma’lumotlari
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-
-# Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-2.0-flash')
+SOURCE_CHANNEL = int(os.getenv("SOURCE_CHANNEL"))  # ID raqam bo'lishi kerak
+TARGET_CHANNEL = int(os.getenv("TARGET_CHANNEL"))  # ID raqam bo'lishi kerak
 
-# OpenAI API (eski versiya uchun)
-# openai.api_key = os.getenv("OPENAI_API_KEY")
+# --- Gemini modelini sozlash ---
+try:
+    genai.configure(api_key=GEMINI_API_KEY)
+    # Sizning akkauntingiz uchun mavjud bo'lgan eng yaxshi modelni tanlaymiz
+    model = genai.GenerativeModel('models/gemini-1.5-flash-latest') 
+    print("✅ Gemini modeli muvaffaqiyatli sozlandi ('gemini-1.5-flash-latest').")
+except Exception as e:
+    print(f"❌ Gemini sozlashda xatolik: {e}")
+    exit()
 
-# Kanallar
-SOURCE_CHANNEL = os.getenv("SOURCE_CHANNEL")
-TARGET_CHANNEL = os.getenv("TARGET_CHANNEL")
-
-# --- KODNING ASOSIY QISMI ---
-
-# Gemini modelini sozlash
-# Botni TelegramClient orqali ishga tushiramiz
-# "bot_session" nomli fayl yaratiladi, u sessiya ma'lumotlarini saqlaydi.
-bot = TelegramClient('bot_session', API_ID, API_HASH)
+# --- Telegram Client sozlash (BOT SIFATIDA EMAS, FOYDALANUVCHI SIFATIDA) ---
+# 'user_session' fayli avtomatik yaratiladi
+client = TelegramClient('user_session', API_ID, API_HASH)
 
 async def translate_with_gemini(text_to_translate):
     prompt = f"""Quyidagi o'zbekcha matnni faqat rus tiliga tarjima qil.
@@ -46,91 +41,49 @@ O'zbekcha matn:
         response = await model.generate_content_async(prompt)
         return response.text.strip()
     except Exception as e:
-        print(f"Gemini tarjima xatosi: {e}")
+        print(f"❌ Gemini tarjima xatosi: {e}")
         return None
 
-# ChatGPT funksiyasi (hozircha ishlatilmaydi)
-# async def translate_with_chatgpt(text_to_translate):
-#     prompt = f"""Quyidagi o'zbekcha matnni rus tiliga tarjima qil.
-# Faqat tarjima qilingan matnni qaytar. Qo'shimcha izoh yoki sarlavha yozma.
-# 
-# Matn:
-# {text_to_translate}"""
-# 
-#     try:
-#         response = await openai.ChatCompletion.acreate(
-#             model="gpt-3.5-turbo",
-#             messages=[
-#                 {"role": "user", "content": prompt}
-#             ],
-#             temperature=0.3
-#         )
-#         return response.choices[0].message['content'].strip()
-#     except Exception as e:
-#         print(f"ChatGPT tarjimada xatolik: {e}")
-#         return None
-
-
 # Manba kanaldagi yangi xabarlarni kuzatuvchi funksiya
-@bot.on(events.NewMessage(chats=SOURCE_CHANNEL))
+@client.on(events.NewMessage(chats=SOURCE_CHANNEL))
 async def handle_new_message(event):
-    """
-    Manba kanaldagi yangi xabarlarni ushlab oladi, tarjima qiladi va maqsad kanalga yuboradi.
-    """
     original_message = event.message
-    
-    # Rasm yoki video bilan kelgan matnni (caption) yoki oddiy matnni olamiz
     message_text = original_message.text
     
     if not message_text:
-        print("Xabarda matn topilmadi. O'tkazib yuborildi.")
+        print("ℹ️ Xabarda matn topilmadi. O'tkazib yuborildi.")
         return
 
-    print(f"Original xabar olindi: {message_text[:50]}...")
-
-    # Matnni Gemini orqali tarjima qilish
+    print(f"📥 Yangi xabar olindi: {message_text[:50]}...")
+    
     translated_text = await translate_with_gemini(message_text)
 
     if translated_text:
         translated_text = translated_text.replace('@nodavlattalim', '@chastnoeobrazovanie')
-    if translated_text:
-        print(f"Tarjima qilindi: {translated_text[:50]}...")
-        original_message = event.message
+        print(f"🔄 Tarjima qilindi: {translated_text[:50]}...")
         try:
             if original_message.media:
-                # Matnni 1024 belgidan uzun bo'lsa, qisqartiramiz
-                if len(translated_text) > 1024:
-                    print("ℹ️ Matn uzun, qisqartirilmoqda...")
-                    # Matnni 1000 belgigacha qisqartiramiz va "..." qo'shamiz
-                    short_text = translated_text[:1000] + "..."
-                    await bot.send_file(TARGET_CHANNEL, original_message.media, caption=short_text)
-                    print("✅ Media qisqartirilgan matn bilan yuborildi.")
-                else:
-                    # Agar matn sig'sa, caption sifatida yuboramiz
-                    await bot.send_file(TARGET_CHANNEL, original_message.media, caption=translated_text)
-                    print("✅ Media to'liq matn bilan yuborildi.")
+                caption = translated_text[:1024] # Telegram caption limiti
+                await client.send_file(TARGET_CHANNEL, original_message.media, caption=caption)
+                print("📤 Media bilan tarjima yuborildi.")
             else:
-                # Agar xabarda media bo'lmasa, oddiy matn sifatida yuboramiz
-                await bot.send_message(TARGET_CHANNEL, translated_text)
-                print("✅ Oddiy matn yuborildi.")
-            
-            print("Tarjima qilingan xabar muvaffaqiyatli yuborildi.")
+                await client.send_message(TARGET_CHANNEL, translated_text)
+                print("📤 Matnli tarjima yuborildi.")
         except Exception as e:
             print(f"❌ Xabarni yuborishda xatolik: {e}")
-        # Original xabardagi rasm yoki videoni saqlab, tarjima qilingan matn bilan yuborish
+    else:
+        print("❌ Tarjima qilishda xatolik yuz berdi.")
 
-
-# Botni ishga tushirish
 async def main():
-    print("Bot ishga tushdi va Gemini yordamida tarjimani kutmoqda...")
-    await bot.start(bot_token=BOT_TOKEN)
-    await bot.run_until_disconnected()
+    print("🤖 Tarjimon ishga tushdi. Shaxsiy akkaunt orqali yangi xabarlar kutilmoqda...")
+    await client.start()
+    print(f"✅ Tizimga kirildi. '{SOURCE_CHANNEL}' kanalidagi yangi xabarlar kuzatilmoqda.")
+    await client.run_until_disconnected()
 
 if __name__ == '__main__':
-    import asyncio
     try:
         asyncio.run(main())
-    except KeyboardInterrupt:
-        print("Bot to'xtatildi.")
+    except (TypeError, ValueError):
+        print("\nXATOLIK: .env faylida SOURCE_CHANNEL yoki TARGET_CHANNEL uchun to'g'ri ID raqam kiriting (masalan, -100123456789).")
     except Exception as e:
-        print(f"Bot xatosi: {e}")
+        print(f"\n❌ Botda kutilmagan xatolik: {e}")
