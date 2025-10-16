@@ -17,6 +17,13 @@ TARGET_CHANNEL = os.getenv("TARGET_CHANNEL")
 # Gemini modelini sozlash
 try:
     genai.configure(api_key=GEMINI_API_KEY)
+    # Mavjud modellarni ko'rish
+    models = genai.list_models()
+    print("Mavjud modellar:")
+    for m in models:
+        if 'generateContent' in m.supported_generation_methods:
+            print(f"- {m.name}")
+    
     model = genai.GenerativeModel('gemini-1.5-flash')
     print("Gemini modeli muvaffaqiyatli sozlandi.")
 except Exception as e:
