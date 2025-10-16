@@ -17,7 +17,7 @@ TARGET_CHANNEL = os.getenv("TARGET_CHANNEL")
 # Gemini modelini sozlash
 try:
     genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     print("Gemini modeli muvaffaqiyatli sozlandi.")
 except Exception as e:
     print(f"Gemini sozlashda xatolik: {e}")
