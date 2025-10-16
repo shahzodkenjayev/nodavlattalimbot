@@ -30,7 +30,7 @@ TARGET_CHANNEL = os.getenv("TARGET_CHANNEL")
 # Gemini modelini sozlash
 # Botni TelegramClient orqali ishga tushiramiz
 # "bot_session" nomli fayl yaratiladi, u sessiya ma'lumotlarini saqlaydi.
-bot = TelegramClient('bot_session', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
+bot = TelegramClient('bot_session', API_ID, API_HASH)
 
 async def translate_with_gemini(text_to_translate):
     prompt = f"""Quyidagi o'zbekcha matnni faqat rus tiliga tarjima qil.
@@ -123,6 +123,7 @@ async def handle_new_message(event):
 # Botni ishga tushirish
 async def main():
     print("Bot ishga tushdi va Gemini yordamida tarjimani kutmoqda...")
+    await bot.start(bot_token=BOT_TOKEN)
     await bot.run_until_disconnected()
 
 if __name__ == '__main__':
