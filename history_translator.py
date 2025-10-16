@@ -24,7 +24,7 @@ try:
         if 'generateContent' in m.supported_generation_methods:
             print(f"- {m.name}")
     
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-flash')
     print("Gemini modeli muvaffaqiyatli sozlandi.")
 except Exception as e:
     print(f"Gemini sozlashda xatolik: {e}")
