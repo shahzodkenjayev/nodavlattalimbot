@@ -7,6 +7,7 @@ Type=simple
 User=root
 WorkingDirectory=/var/www/html/nodavlattalimbot
 Environment=PATH=/var/www/html/nodavlattalimbot/venv/bin
+EnvironmentFile=/var/www/html/nodavlattalimbot/.env
 ExecStart=/var/www/html/nodavlattalimbot/venv/bin/python gemini_translator_bot.py
 Restart=always
 RestartSec=10
