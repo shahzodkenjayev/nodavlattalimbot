@@ -47,8 +47,12 @@ O'zbekcha matn:
 # Manba kanaldagi yangi xabarlarni kuzatuvchi funksiya
 @client.on(events.NewMessage(chats=SOURCE_CHANNEL))
 async def handle_new_message(event):
+    print("🔔 Event handler ishga tushdi!")
     original_message = event.message
     message_text = original_message.text
+    
+    print(f"📨 Xabar ID: {original_message.id}")
+    print(f"📨 Xabar matni: {message_text}")
     
     if not message_text:
         print("ℹ️ Xabarda matn topilmadi. O'tkazib yuborildi.")
