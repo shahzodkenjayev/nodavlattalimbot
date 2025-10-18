@@ -59,7 +59,7 @@ async def main():
 
         print("Tizimga kirildi. Eski xabarlarni o'qish boshlandi.")
 
-        message_limit = 5
+        message_limit = 2
         print(f"Manba kanaldan oxirgi {message_limit} ta xabar olinmoqda...")
         
         # Xabarlarni o'qib olamiz
