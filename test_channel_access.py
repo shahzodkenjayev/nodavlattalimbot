@@ -7,7 +7,8 @@ load_dotenv()
 
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
-SOURCE_CHANNEL = int(os.getenv("SOURCE_CHANNEL"))
+# SOURCE_CHANNEL = int(os.getenv("SOURCE_CHANNEL"))
+SOURCE_CHANNEL = "nodavlattalim_ru"  # Yangi kanal username
 TARGET_CHANNEL = int(os.getenv("TARGET_CHANNEL"))
 
 async def test_channel_access():

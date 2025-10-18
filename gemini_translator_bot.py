@@ -10,7 +10,7 @@ load_dotenv()
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-SOURCE_CHANNEL = int(os.getenv("SOURCE_CHANNEL"))  # ID raqam bo'lishi kerak
+SOURCE_CHANNEL = int(os.getenv("SOURCE_CHANNEL"))  # Yangi kanal ID raqami
 TARGET_CHANNEL = int(os.getenv("TARGET_CHANNEL"))  # ID raqam bo'lishi kerak
 
 # --- Gemini modelini sozlash ---
