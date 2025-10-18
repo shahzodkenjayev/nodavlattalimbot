@@ -16,9 +16,27 @@ TARGET_CHANNEL = int(os.getenv("TARGET_CHANNEL"))  # ID raqam bo'lishi kerak
 # --- Gemini modelini sozlash ---
 try:
     genai.configure(api_key=GEMINI_API_KEY)
-    # Sizning akkauntingiz uchun mavjud bo'lgan eng yaxshi modelni tanlaymiz
-    model = genai.GenerativeModel('models/gemini-1.5-flash-latest') 
-    print("✅ Gemini modeli muvaffaqiyatli sozlandi ('gemini-1.5-flash-latest').")
+    # Mavjud modellarni ko'rish va eng yaxshi modelni tanlash
+    models = genai.list_models()
+    print("Mavjud modellar:")
+    available_models = []
+    for m in models:
+        if 'generateContent' in m.supported_generation_methods:
+            available_models.append(m.name)
+            print(f"- {m.name}")
+    
+    # Eng yaxshi modelni tanlash (gemini-2.0-flash yoki gemini-1.5-flash)
+    if 'models/gemini-2.0-flash' in available_models:
+        model_name = 'models/gemini-2.0-flash'
+    elif 'models/gemini-1.5-flash' in available_models:
+        model_name = 'models/gemini-1.5-flash'
+    elif 'models/gemini-flash-latest' in available_models:
+        model_name = 'models/gemini-flash-latest'
+    else:
+        model_name = available_models[0] if available_models else 'models/gemini-1.5-flash'
+    
+    model = genai.GenerativeModel(model_name) 
+    print(f"✅ Gemini modeli muvaffaqiyatli sozlandi ('{model_name}').")
 except Exception as e:
     print(f"❌ Gemini sozlashda xatolik: {e}")
     exit()
