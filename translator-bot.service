@@ -1,0 +1,17 @@
+[Unit]
+Description=Telegram Translator Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/html/nodavlattalimbot
+Environment=PATH=/var/www/html/nodavlattalimbot/venv/bin
+ExecStart=/var/www/html/nodavlattalimbot/venv/bin/python gemini_translator_bot.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
